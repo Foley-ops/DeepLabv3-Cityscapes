@@ -1,3 +1,6 @@
+.DS_Store
+cityscape_benchmark_results.csv
+
 # Ignore everything in cityscapes
 cityscapes/*
 
