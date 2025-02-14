@@ -4,12 +4,17 @@ cityscape_benchmark_results.csv
 # Ignore everything in cityscapes
 cityscapes/*
 
-# Except gtFine directory
+# Allow gtFine directory
 !cityscapes/gtFine/
 cityscapes/gtFine/*
 
-# Except val directory inside gtFine
+# Allow val directory inside gtFine
 !cityscapes/gtFine/val/
+cityscapes/gtFine/val/*
+
+# Allow only frankfurt directory inside val
+!cityscapes/gtFine/val/frankfurt/
+
 
 # Old Data
 OLD_BENCH/
