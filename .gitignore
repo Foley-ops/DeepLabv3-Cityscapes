@@ -1,3 +1,19 @@
+# Ignore everything in cityscapes
+cityscapes/*
+
+# Except gtFine directory
+!cityscapes/gtFine/
+cityscapes/gtFine/*
+
+# Except val directory inside gtFine
+!cityscapes/gtFine/val/
+
+# Old Data
+OLD_BENCH/
+OLD_SCRIPTS
+deeplab1.png
+ground_truth.png
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

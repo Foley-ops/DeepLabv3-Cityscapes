@@ -1,0 +1,8 @@
+torch
+torchvision
+Pillow
+psutil
+pynvml
+pandas
+numpy
+scikit-learn
