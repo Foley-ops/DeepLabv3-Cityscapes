@@ -3,7 +3,7 @@ cityscape_benchmark_results.csv
 
 # Ignore everything in cityscapes
 cityscapes/*
-
+cityscapes_bak/*
 # Allow gtFine directory
 !cityscapes/gtFine/
 cityscapes/gtFine/*
