@@ -37,68 +37,6 @@ print(f"Using device: {device}")
 model = deeplabv3_resnet101(weights=DeepLabV3_ResNet101_Weights.DEFAULT).to(device)
 model.eval()
 
-def measure_power_usage():
-    """Measure power usage based on the platform."""
-    system = platform.system()
-
-    if system == "Linux" and is_raspberry_pi():
-        return measure_power_usage_raspberry_pi()
-    elif system == "Linux":
-        return measure_power_usage_linux()
-    elif system == "Darwin":
-        return measure_power_usage_macos()
-    else:
-        return 'N/A'
-
-def is_raspberry_pi():
-    """Check if running on a Raspberry Pi."""
-    try:
-        with open('/proc/device-tree/model', 'r') as f:
-            return 'Raspberry Pi' in f.read()
-    except FileNotFoundError:
-        return False
-
-def measure_power_usage_raspberry_pi():
-    """Measure power usage on Raspberry Pi using vcgencmd."""
-    try:
-        voltage = float(subprocess.check_output(
-            ["vcgencmd", "measure_volts", "core"], 
-            universal_newlines=True
-        ).strip().replace('volt=', '').replace('V', ''))
-
-        current = float(subprocess.check_output(
-            ["vcgencmd", "measure_current", "core"], 
-            universal_newlines=True
-        ).strip().replace('current=', '').replace('A', ''))
-
-        power = voltage * current  # Power (Watts) = Voltage * Current
-        return round(power, 3)
-    except Exception:
-        return 'N/A'
-
-def measure_power_usage_linux():
-    """Measure power usage on Linux systems (e.g., Ubuntu)."""
-    try:
-        with open('/sys/class/power_supply/BAT0/power_now', 'r') as f:
-            power_now = int(f.read().strip()) / 1e6  # Convert µW to W
-        return round(power_now, 3)
-    except FileNotFoundError:
-        return 'N/A'
-
-def measure_power_usage_macos():
-    """Measure power usage on macOS using pmset."""
-    try:
-        output = subprocess.check_output(
-            ["pmset", "-g", "batt"], universal_newlines=True
-        )
-        for line in output.splitlines():
-            if "watts" in line.lower():
-                usage = line.split()[0].replace(';', '')
-                return float(usage)
-        return 'N/A'
-    except Exception:
-        return 'N/A'
-
 def load_and_preprocess_image(image_path):
     input_image = Image.open(image_path).convert("RGB")
     preprocess = transforms.Compose([
@@ -113,7 +51,7 @@ def load_ground_truth(label_path, output_shape):
     return np.array(gt_image, dtype=np.uint8)
 
 def measure_resource_usage():
-    cpu_usage = psutil.cpu_percent(interval=1)
+    cpu_usage = psutil.cpu_percent(interval=.1)
     mem_usage = psutil.virtual_memory().percent
     gpu_usage, gpu_power = None, None
     if device.type == 'cuda':
@@ -135,9 +73,9 @@ def save_benchmark_summary(results, csv_file='VOS_benchmark_results.csv'):
         'Avg Model Accuracy (%)': safe_mean([r.get('Model Accuracy (%)', 0) for r in results]),
         'Avg CPU Usage (%)': safe_mean([r.get('CPU Usage (%)', 0) for r in results]),
         'Avg Memory Usage (%)': safe_mean([r.get('Memory Usage (%)', 0) for r in results]),
-        'Avg GPU Usage (%)': safe_mean([r.get('GPU Usage (%)', 0) for r in results if r.get('GPU Usage (%)') != 'N/A']),
+        #'Avg GPU Usage (%)': safe_mean([r.get('GPU Usage (%)', 0) for r in results if r.get('GPU Usage (%)') != 'N/A']),
         'Avg GPU Power (W)': safe_mean([r.get('GPU Power (W)', 0) for r in results if r.get('GPU Power (W)') != 'N/A']),
-        'Avg Power Usage (W)': safe_mean([r.get('Power Usage (W)', 0) for r in results if r.get('Power Usage (W)') != 'N/A'])
+        #'Avg Power Usage (W)': safe_mean([r.get('Power Usage (W)', 0) for r in results if r.get('Power Usage (W)') != 'N/A'])
     }])
     summary.to_csv(csv_file, mode='a', index=False, header=not os.path.isfile(csv_file))
     print(f"Run Summary saved to {csv_file}")
@@ -148,12 +86,10 @@ def process_cityscapes_images(root_dir, max_inferences=None):
     for label_path in Path(root_dir).rglob('*_labelIds.png'):
         if max_inferences and count >= max_inferences:
             break
-
-        power_usage = measure_power_usage() or 'N/A'
         
         color_path = str(label_path).replace('_labelIds.png', '_color.png')
-        print(f"Label path: {label_path.relative_to(root_dir)}")
-        print(f"Color path: {Path(color_path).relative_to(root_dir)}")
+        #print(f"Label path: {label_path.relative_to(root_dir)}")
+        #print(f"Color path: {Path(color_path).relative_to(root_dir)}")
         if not os.path.isfile(color_path):
             continue
 
@@ -176,7 +112,6 @@ def process_cityscapes_images(root_dir, max_inferences=None):
             'Memory Usage (%)': mem_usage,
             'GPU Usage (%)': gpu_usage if gpu_usage is not None else 'N/A',
             'GPU Power (W)': gpu_power if gpu_power is not None else 'N/A',
-            'Power Usage (W)': power_usage
         })
 
         print(f"Processed {label_path.stem} - Accuracy: {accuracy:.4f}, Time: {inference_time:.4f}s")
