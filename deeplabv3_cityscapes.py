@@ -1,4 +1,5 @@
 import torch
+from torchvision.datasets import VOCSegmentation
 from torchvision import transforms
 from torchvision.models.segmentation import deeplabv3_resnet101, DeepLabV3_ResNet101_Weights
 from PIL import Image
@@ -9,11 +10,25 @@ import subprocess
 import psutil
 import pynvml
 import os
+import shutil
 import warnings
 import pandas as pd
 import numpy as np
 from sklearn.metrics import accuracy_score
 from pathlib import Path
+
+# Download VOC to ./VOC2012
+voc_dataset = VOCSegmentation(root='./', year='2012', image_set='train', download=True)
+
+output_dir = './VOSsegmentation/val'
+os.makedirs(output_dir, exist_ok=True)
+
+for i, (img, target) in enumerate(voc_dataset):
+    color_filename = f"voc_{i:05d}_color.png"
+    label_filename = f"voc_{i:05d}_labelIds.png"
+    
+    img.save(os.path.join(output_dir, color_filename))
+    target.save(os.path.join(output_dir, label_filename))
 
 warnings.filterwarnings("ignore", category=UserWarning)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -111,7 +126,7 @@ def measure_resource_usage():
 def safe_mean(values):
     return round(np.mean(values), 4) if values else 0.0
 
-def save_benchmark_summary(results, csv_file='cityscape_benchmark_results.csv'):
+def save_benchmark_summary(results, csv_file='VOS_benchmark_results.csv'):
     summary = pd.DataFrame([{
         'Timestamp': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         'Total Inferences': len(results),
@@ -136,6 +151,8 @@ def process_cityscapes_images(root_dir, max_inferences=None):
         power_usage = measure_power_usage() or 'N/A'
         
         color_path = str(label_path).replace('_labelIds.png', '_color.png')
+        print(f"Label path: {label_path.relative_to(root_dir)}")
+        print(f"Color path: {Path(color_path).relative_to(root_dir)}")
         if not os.path.isfile(color_path):
             continue
 
@@ -166,5 +183,5 @@ def process_cityscapes_images(root_dir, max_inferences=None):
 
     save_benchmark_summary(results)
 
-root_directory = './cityscapes/gtFine'
+root_directory = './VOSsegmentation/val'
 process_cityscapes_images(root_directory, max_inferences=10)

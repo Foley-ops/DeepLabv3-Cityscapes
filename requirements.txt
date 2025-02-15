@@ -6,3 +6,4 @@ pynvml
 pandas
 numpy
 scikit-learn
+matplotlib

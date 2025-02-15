@@ -1,19 +1,17 @@
 .DS_Store
 cityscape_benchmark_results.csv
+single_benchmark_results.csv
 
+cityscapes_bak
+
+*VOS*
+*VOC*
+*.tar
+*.csv
 # Ignore everything in cityscapes
-cityscapes/*
-cityscapes_bak/*
-# Allow gtFine directory
-!cityscapes/gtFine/
-cityscapes/gtFine/*
-
-# Allow val directory inside gtFine
-!cityscapes/gtFine/val/
-cityscapes/gtFine/val/*
+/cityscapes/*
 
 # Allow only frankfurt directory inside val
-!cityscapes/gtFine/val/frankfurt/
 
 
 # Old Data

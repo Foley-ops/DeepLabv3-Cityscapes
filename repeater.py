@@ -1,4 +1,10 @@
 import subprocess
 
-for _ in range(10):
-    subprocess.run(["python3", "deeplabv3_cityscapes.py"])
+RUN_COMMAND = "python3"
+RUN_FILE = "deeplabv3_cityscapes.py"
+
+print(f"Starting Repeater on {RUN_FILE}...")
+for i in range(200):
+    print(f"Run #{i}")
+    subprocess.run([RUN_COMMAND, RUN_FILE])
+    print(" ")
